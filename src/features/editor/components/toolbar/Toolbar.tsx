@@ -12,7 +12,8 @@ import {
   Underline,
   Strikethrough,
   List,
-  ListOrdered
+  ListOrdered,
+  Table
 } from 'lucide-react'
 
 export const Toolbar: React.FC = () => {
@@ -102,6 +103,18 @@ export const Toolbar: React.FC = () => {
           shortcut="Ctrl+Shift+7"
           onClick={commands.toggleOrderedList}
           isActive={commands.isOrderedList()}
+        />
+      </ToolbarGroup>
+
+      <Separator orientation="vertical" className="h-6" />
+
+      <ToolbarGroup>
+        <ToolbarButton
+          icon={Table}
+          label="Insert Table"
+          shortcut=""
+          onClick={commands.insertTable}
+          isDisabled={!commands.canInsertTable()}
         />
       </ToolbarGroup>
     </div>

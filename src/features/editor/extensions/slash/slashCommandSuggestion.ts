@@ -87,8 +87,9 @@ export const slashCommandSuggestion: Omit<SuggestionOptions, 'editor'> = {
         description: 'Add a table to your document.',
         icon: Table,
         command: ({ editor, range }: { editor: Editor; range: Range }) => {
+          const commands = createEditorCommands(editor)
           editor.chain().focus().deleteRange(range).run()
-          console.log('Table feature coming soon')
+          commands.insertTable()
         },
       },
       {

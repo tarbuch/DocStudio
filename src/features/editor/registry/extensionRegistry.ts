@@ -1,6 +1,10 @@
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import CharacterCount from '@tiptap/extension-character-count'
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableHeader } from '@tiptap/extension-table-header'
+import { TableCell } from '@tiptap/extension-table-cell'
 import { SlashCommand } from '../extensions/slash/SlashCommand'
 
 /**
@@ -15,6 +19,15 @@ export const getExtensions = () => [
   }),
   Underline,
   CharacterCount,
+  Table.configure({
+    resizable: false, // Phase 4.1 Milestone 1: No resizing
+    HTMLAttributes: {
+      class: 'my-4 w-full border-collapse border border-border',
+    },
+  }),
+  TableRow,
+  TableHeader,
+  TableCell,
   SlashCommand,
 ]
 

@@ -43,9 +43,23 @@ export const createEditorCommands = (editor: Editor | null) => {
     isBulletList: () => editor?.isActive('bulletList') ?? false,
     isOrderedList: () => editor?.isActive('orderedList') ?? false,
 
+    insertTable: () => editor?.chain().focus().insertTable({ rows: 2, cols: 2, withHeaderRow: true }).run(),
+    canInsertTable: () => editor?.can().insertTable({ rows: 2, cols: 2, withHeaderRow: true }) ?? false,
+
+    insertRowBefore: () => editor?.chain().focus().addRowBefore().run(),
+    insertRowAfter: () => editor?.chain().focus().addRowAfter().run(),
+    deleteRow: () => editor?.chain().focus().deleteRow().run(),
+
+    insertColumnBefore: () => editor?.chain().focus().addColumnBefore().run(),
+    insertColumnAfter: () => editor?.chain().focus().addColumnAfter().run(),
+    deleteColumn: () => editor?.chain().focus().deleteColumn().run(),
+
+    toggleHeaderRow: () => editor?.chain().focus().toggleHeaderRow().run(),
+    deleteTable: () => editor?.chain().focus().deleteTable().run(),
+
+    canModifyTable: () => editor?.isActive('table') ?? false,
+
     getWordCount: () => editor?.storage.characterCount?.words() ?? 0,
     getCharacterCount: () => editor?.storage.characterCount?.characters() ?? 0,
   }
 }
-
-

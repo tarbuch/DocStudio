@@ -1,12 +1,12 @@
 import React from 'react'
-import { useEditorContext } from '../../providers/EditorProvider'
+import { useEditorContext } from '../../editor/providers/EditorProvider'
 import { Check, Globe, ZoomIn } from 'lucide-react'
 
 export const StatusBar: React.FC = () => {
   const { commands, isLoading } = useEditorContext()
 
   if (isLoading) {
-    return <div className="h-8 w-full border-t bg-background mt-auto"></div>
+    return <div className="h-8 w-full border-t bg-background mt-auto shrink-0 z-50"></div>
   }
 
   const words = commands.getWordCount()

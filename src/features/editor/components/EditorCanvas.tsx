@@ -3,6 +3,7 @@ import { EditorContent } from '@tiptap/react'
 import { useEditorContext } from '../providers/EditorProvider'
 import { EditorSkeleton } from './EditorSkeleton'
 import { EditorBubbleMenu } from './toolbar/EditorBubbleMenu'
+import { TableContextMenu } from '../extensions/tables/TableContextMenu'
 
 export const EditorCanvas: React.FC = () => {
   const { editor, isLoading, isError } = useEditorContext()
@@ -22,6 +23,7 @@ export const EditorCanvas: React.FC = () => {
   return (
     <>
       <EditorBubbleMenu />
+      <TableContextMenu />
       <EditorContent editor={editor} className="flex-1 outline-none prose prose-slate dark:prose-invert max-w-none w-full" />
     </>
   )
