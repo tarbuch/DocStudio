@@ -1,16 +1,19 @@
 import { useState, useCallback } from 'react'
 import { useEditorContext } from '../../editor/providers/EditorProvider'
-import { exportToDocx } from '../exporters/docxExporter'
-import type { ExportState } from '../types'
+import { executeExport } from '../services/exportEngine'
+import { SupportedExportFormats } from '../constants/export'
+import type { ExportState, ExportResult } from '../types'
 
 export const useExport = () => {
   const { editor, documentTitle } = useEditorContext()
   const [exportState, setExportState] = useState<ExportState>('idle')
+  const [lastResult, setLastResult] = useState<ExportResult | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const reset = useCallback(() => {
     setExportState('idle')
     setError(null)
+    setLastResult(null)
   }, [])
 
   const handleExportDocx = useCallback(async () => {
@@ -21,12 +24,17 @@ export const useExport = () => {
       setError(null)
       
       const content = editor.getJSON()
-      await exportToDocx(content, documentTitle)
+      const result = await executeExport(SupportedExportFormats.DOCX, content, documentTitle)
       
-      setExportState('success')
-      
-      // Reset back to idle after a short delay for UI purposes
-      setTimeout(() => reset(), 2000)
+      setLastResult(result)
+
+      if (result.success) {
+        setExportState('success')
+        setTimeout(() => reset(), 2000)
+      } else {
+        setExportState('error')
+        setError(result.error || 'Export failed validation or pipeline error')
+      }
     } catch (err) {
       console.error('Export failed:', err)
       setExportState('error')
@@ -39,6 +47,7 @@ export const useExport = () => {
     exportToDocx: handleExportDocx,
     isExporting: exportState === 'exporting',
     error,
+    lastResult,
     reset,
   }
 }

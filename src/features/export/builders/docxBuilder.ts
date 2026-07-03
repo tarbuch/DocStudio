@@ -1,9 +1,13 @@
-import { Document, Paragraph, TextRun, HeadingLevel } from 'docx'
+import { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType } from 'docx'
 import type {
   DocumentAST,
   AnyExportNode,
   TextNode,
   HeadingNode,
+  TableNode,
+  TableRowNode,
+  TableHeaderNode,
+  TableCellNode,
 } from '../types'
 
 /**
@@ -65,11 +69,42 @@ const buildDocxNode = (node: AnyExportNode): Paragraph | Paragraph[] | null => {
       // Lists are expanded into individual paragraphs with bullet/numbering config
       return buildListItems(node as AnyExportNode, 0) as unknown as Paragraph
 
+    case 'table':
+      return buildTable(node as TableNode) as unknown as Paragraph
+
+    case 'tableRow':
+    case 'tableHeader':
+    case 'tableCell':
     case 'listItem':
     case 'unsupported':
     case 'text':
       return null
   }
+}
+
+const buildTable = (node: TableNode) => {
+  const rows = node.content || []
+  return new Table({
+    width: {
+      size: 100,
+      type: WidthType.PERCENTAGE,
+    },
+    rows: rows.map(r => buildTableRow(r)),
+  })
+}
+
+const buildTableRow = (node: TableRowNode) => {
+  const cells = node.content || []
+  return new TableRow({
+    children: cells.map(c => buildTableCell(c)),
+  })
+}
+
+const buildTableCell = (node: TableHeaderNode | TableCellNode) => {
+  const cellContent = node.content || []
+  return new TableCell({
+    children: cellContent.flatMap(c => buildDocxNode(c)).filter(Boolean) as Paragraph[],
+  })
 }
 
 const buildListItems = (listNode: AnyExportNode, level: number = 0): Paragraph[] => {

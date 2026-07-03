@@ -4,6 +4,7 @@ export interface ExportMetrics {
   paragraphs: number
   headings: number
   lists: number
+  tables: number
   unsupportedNodes: number
 }
 

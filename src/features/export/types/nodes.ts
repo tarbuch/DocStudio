@@ -6,6 +6,10 @@ export type ExportNodeType =
   | 'bulletList'
   | 'orderedList'
   | 'listItem'
+  | 'table'
+  | 'tableRow'
+  | 'tableHeader'
+  | 'tableCell'
   | 'unsupported'
 
 export interface BaseExportNode {
@@ -49,6 +53,26 @@ export interface ListItemNode extends BaseExportNode {
   content?: AnyExportNode[]
 }
 
+export interface TableNode extends BaseExportNode {
+  type: 'table'
+  content?: TableRowNode[]
+}
+
+export interface TableRowNode extends BaseExportNode {
+  type: 'tableRow'
+  content?: (TableHeaderNode | TableCellNode)[]
+}
+
+export interface TableHeaderNode extends BaseExportNode {
+  type: 'tableHeader'
+  content?: AnyExportNode[]
+}
+
+export interface TableCellNode extends BaseExportNode {
+  type: 'tableCell'
+  content?: AnyExportNode[]
+}
+
 export interface UnsupportedNode extends BaseExportNode {
   type: 'unsupported'
   originalType: string
@@ -61,4 +85,8 @@ export type AnyExportNode =
   | BulletListNode 
   | OrderedListNode 
   | ListItemNode 
+  | TableNode
+  | TableRowNode
+  | TableHeaderNode
+  | TableCellNode
   | UnsupportedNode

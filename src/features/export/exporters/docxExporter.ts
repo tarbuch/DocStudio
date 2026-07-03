@@ -1,39 +1,33 @@
-import { Packer } from 'docx'
-import type { JSONContent } from '@tiptap/core'
-import { parseTipTapToAST } from '../parser/parser'
-import { buildDocx } from '../builders/docxBuilder'
+import { Packer, Document } from 'docx'
 import { DEFAULT_FILENAME, DOCX_EXTENSION } from '../constants/export'
 
 /**
- * Orchestrates the DOCX export pipeline:
- * 1. TipTap JSON -> DocumentAST (Parser)
- * 2. DocumentAST -> docx.Document (Builder)
- * 3. docx.Document -> Blob -> Download (Exporter)
+ * Handles browser-specific download logic for DOCX.
+ * Receives a built docx.Document and triggers the download.
  */
-export const exportToDocx = async (content: JSONContent, title: string): Promise<void> => {
+export const docxExporter = async (docxDocument: Document, title: string): Promise<string> => {
   try {
-    // Step 1: Parse to intermediate AST
-    const ast = parseTipTapToAST(content)
+    // Step 1: Pack to binary Blob
+    const blob = await Packer.toBlob(docxDocument)
 
-    // Step 2: Build DOCX document
-    const doc = buildDocx(ast, title)
+    // Step 2: Generate safe filename
+    const safeTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || DEFAULT_FILENAME
+    const filename = `${safeTitle}${DOCX_EXTENSION}`
 
-    // Step 3: Pack to binary Blob
-    const blob = await Packer.toBlob(doc)
-
-    // Step 4: Trigger browser download
+    // Step 3: Trigger browser download
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
+    const a = window.document.createElement('a')
     a.href = url
-    a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || DEFAULT_FILENAME}${DOCX_EXTENSION}`
-    document.body.appendChild(a)
+    a.download = filename
+    window.document.body.appendChild(a)
     a.click()
     
     // Cleanup
-    document.body.removeChild(a)
+    window.document.body.removeChild(a)
     URL.revokeObjectURL(url)
+
+    return filename
   } catch (error) {
-    console.error('Failed to export DOCX:', error)
-    throw new Error(`Export pipeline failed: ${error instanceof Error ? error.message : 'Unknown error'}`, { cause: error })
+    throw new Error(`Export download failed: ${error instanceof Error ? error.message : 'Unknown error'}`, { cause: error })
   }
 }

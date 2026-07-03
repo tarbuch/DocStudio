@@ -7,6 +7,9 @@ import type {
   UnsupportedNode,
   ListItemNode,
   ExportMetrics,
+  TableRowNode,
+  TableHeaderNode,
+  TableCellNode,
 } from '../types'
 
 /**
@@ -17,6 +20,7 @@ export const parseTipTapToAST = (content: JSONContent): DocumentAST => {
     paragraphs: 0,
     headings: 0,
     lists: 0,
+    tables: 0,
     unsupportedNodes: 0,
   }
   const unsupportedNodes: UnsupportedNode[] = []
@@ -38,7 +42,8 @@ export const parseTipTapToAST = (content: JSONContent): DocumentAST => {
 const parseNode = (
   node: JSONContent, 
   metrics: ExportMetrics, 
-  unsupportedNodes: UnsupportedNode[]
+  unsupportedNodes: UnsupportedNode[],
+  inTable: boolean = false
 ): AnyExportNode | null => {
   if (!node.type) return null
 
@@ -47,7 +52,7 @@ const parseNode = (
       metrics.paragraphs++
       return {
         type: 'paragraph',
-        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes)).filter(Boolean) as (TextNode | UnsupportedNode)[]) : [],
+        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, inTable)).filter(Boolean) as (TextNode | UnsupportedNode)[]) : [],
       }
 
     case 'heading':
@@ -55,7 +60,7 @@ const parseNode = (
       return {
         type: 'heading',
         level: node.attrs?.level || 1,
-        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes)).filter(Boolean) as (TextNode | UnsupportedNode)[]) : [],
+        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, inTable)).filter(Boolean) as (TextNode | UnsupportedNode)[]) : [],
       }
 
     case 'text':
@@ -70,14 +75,48 @@ const parseNode = (
       metrics.lists++
       return {
         type: node.type,
-        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes)).filter(Boolean) as ListItemNode[]) : [],
+        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, inTable)).filter(Boolean) as ListItemNode[]) : [],
       }
 
     case 'listItem':
       return {
         type: 'listItem',
-        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes)).filter(Boolean) as AnyExportNode[]) : [],
+        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, inTable)).filter(Boolean) as AnyExportNode[]) : [],
       } as ListItemNode
+
+    case 'table':
+      if (inTable) {
+        metrics.unsupportedNodes++
+        const unsupported: UnsupportedNode = {
+          type: 'unsupported',
+          originalType: 'nestedTable',
+        }
+        unsupportedNodes.push(unsupported)
+        return unsupported
+      }
+      metrics.tables++
+      return {
+        type: 'table',
+        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, true)).filter(Boolean) as TableRowNode[]) : [],
+      }
+
+    case 'tableRow':
+      return {
+        type: 'tableRow',
+        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, true)).filter(Boolean) as (TableHeaderNode | TableCellNode)[]) : [],
+      }
+
+    case 'tableHeader':
+      return {
+        type: 'tableHeader',
+        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, true)).filter(Boolean) as AnyExportNode[]) : [],
+      }
+
+    case 'tableCell':
+      return {
+        type: 'tableCell',
+        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, true)).filter(Boolean) as AnyExportNode[]) : [],
+      }
 
     // Ignore unsupported nodes like tables, images, etc. for Phase 7.1
     default: {
