@@ -2,6 +2,7 @@ import React from 'react'
 import { MenuBar } from './MenuBar'
 import { DocumentHeader } from './DocumentHeader'
 import { FileText } from 'lucide-react'
+import { ExportDialog } from '../../export/components/ExportDialog'
 
 export const AppHeader: React.FC = () => {
   return (
@@ -16,7 +17,8 @@ export const AppHeader: React.FC = () => {
         </div>
       </div>
       
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        <ExportDialog />
         <div className="h-8 w-8 rounded-full bg-muted border flex items-center justify-center text-xs font-medium cursor-pointer hover:bg-accent transition-colors">
           U
         </div>
