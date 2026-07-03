@@ -10,6 +10,7 @@ import type {
   TableRowNode,
   TableHeaderNode,
   TableCellNode,
+  ImageNode,
 } from '../types'
 
 /**
@@ -21,6 +22,7 @@ export const parseTipTapToAST = (content: JSONContent): DocumentAST => {
     headings: 0,
     lists: 0,
     tables: 0,
+    images: 0,
     unsupportedNodes: 0,
   }
   const unsupportedNodes: UnsupportedNode[] = []
@@ -52,7 +54,7 @@ const parseNode = (
       metrics.paragraphs++
       return {
         type: 'paragraph',
-        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, inTable)).filter(Boolean) as (TextNode | UnsupportedNode)[]) : [],
+        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, inTable)).filter(Boolean) as (TextNode | ImageNode | UnsupportedNode)[]) : [],
       }
 
     case 'heading':
@@ -117,6 +119,27 @@ const parseNode = (
         type: 'tableCell',
         content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, true)).filter(Boolean) as AnyExportNode[]) : [],
       }
+
+    case 'image':
+      if (inTable) {
+        metrics.unsupportedNodes++
+        const unsupported: UnsupportedNode = {
+          type: 'unsupported',
+          originalType: 'imageInTable',
+        }
+        unsupportedNodes.push(unsupported)
+        return unsupported
+      }
+      metrics.images++
+      return {
+        type: 'image',
+        src: node.attrs?.src || '',
+        alt: node.attrs?.alt,
+        title: node.attrs?.title,
+        width: typeof node.attrs?.width === 'number' ? node.attrs.width : undefined,
+        height: typeof node.attrs?.height === 'number' ? node.attrs.height : undefined,
+        alignment: node.attrs?.alignment,
+      } as ImageNode
 
     // Ignore unsupported nodes like tables, images, etc. for Phase 7.1
     default: {

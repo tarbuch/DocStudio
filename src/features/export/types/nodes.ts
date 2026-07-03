@@ -10,6 +10,7 @@ export type ExportNodeType =
   | 'tableRow'
   | 'tableHeader'
   | 'tableCell'
+  | 'image'
   | 'unsupported'
 
 export interface BaseExportNode {
@@ -29,7 +30,7 @@ export interface TextNode extends BaseExportNode {
 
 export interface ParagraphNode extends BaseExportNode {
   type: 'paragraph'
-  content?: (TextNode | UnsupportedNode)[]
+  content?: (TextNode | ImageNode | UnsupportedNode)[]
 }
 
 export interface HeadingNode extends BaseExportNode {
@@ -73,6 +74,16 @@ export interface TableCellNode extends BaseExportNode {
   content?: AnyExportNode[]
 }
 
+export interface ImageNode extends BaseExportNode {
+  type: 'image'
+  src: string
+  alt?: string
+  title?: string
+  width?: number
+  height?: number
+  alignment?: 'left' | 'center' | 'right'
+}
+
 export interface UnsupportedNode extends BaseExportNode {
   type: 'unsupported'
   originalType: string
@@ -89,4 +100,5 @@ export type AnyExportNode =
   | TableRowNode
   | TableHeaderNode
   | TableCellNode
+  | ImageNode
   | UnsupportedNode

@@ -4,7 +4,7 @@ import { useExport } from '../hooks/useExport'
 
 export const ExportDialog: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const { exportState, exportToDocx, isExporting } = useExport()
+  const { exportState, exportToDocx, isExporting, error } = useExport()
 
   return (
     <>
@@ -31,6 +31,12 @@ export const ExportDialog: React.FC = () => {
             </div>
 
             <div className="p-4 flex flex-col gap-3">
+              {error && (
+                <div className="p-2.5 text-xs bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/30 rounded-md">
+                  {error}
+                </div>
+              )}
+
               <button
                 onClick={exportToDocx}
                 disabled={isExporting}

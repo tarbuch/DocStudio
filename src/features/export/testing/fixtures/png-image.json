@@ -1,0 +1,24 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "This is a document with a PNG image:"
+        },
+        {
+          "type": "image",
+          "attrs": {
+            "src": "https://example.com/test.png",
+            "alt": "Sample PNG",
+            "title": "PNG Title",
+            "width": 300,
+            "height": 200
+          }
+        }
+      ]
+    }
+  ]
+}

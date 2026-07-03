@@ -1,0 +1,22 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "This is a document with a Base64 image:"
+        },
+        {
+          "type": "image",
+          "attrs": {
+            "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+            "alt": "Base64 Pixel",
+            "title": "Pixel Title"
+          }
+        }
+      ]
+    }
+  ]
+}

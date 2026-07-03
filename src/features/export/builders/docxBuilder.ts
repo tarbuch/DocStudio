@@ -1,6 +1,16 @@
-import { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType } from 'docx'
+import {
+  Document,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  ImageRun,
+  AlignmentType,
+} from 'docx'
 import type {
-  DocumentAST,
   AnyExportNode,
   TextNode,
   HeadingNode,
@@ -8,19 +18,23 @@ import type {
   TableRowNode,
   TableHeaderNode,
   TableCellNode,
+  ImageNode,
+  ExportContext,
 } from '../types'
+import { DEFAULT_IMAGE_WIDTH, MAX_IMAGE_WIDTH } from '../constants/export'
 
 /**
- * Builds a docx.Document from a DocStudio DocumentAST
+ * Builds a docx.Document from a DocStudio ExportContext
+ * (Pure & Synchronous Transformation Layer)
  */
-export const buildDocx = (ast: DocumentAST, title: string = 'Document'): Document => {
-  const children = ast.content
-    .flatMap((node) => buildDocxNode(node))
+export const buildDocx = (context: ExportContext): Document => {
+  const children = context.ast.content
+    .flatMap((node) => buildDocxNode(node, context))
     .filter(Boolean) as Paragraph[]
 
   return new Document({
     creator: 'DocStudio',
-    title: title,
+    title: context.documentTitle,
     numbering: {
       config: [
         {
@@ -45,32 +59,43 @@ export const buildDocx = (ast: DocumentAST, title: string = 'Document'): Documen
   })
 }
 
-const buildDocxNode = (node: AnyExportNode): Paragraph | Paragraph[] | null => {
+const buildDocxNode = (
+  node: AnyExportNode,
+  context: ExportContext
+): Paragraph | Paragraph[] | null => {
   switch (node.type) {
     case 'paragraph':
       return new Paragraph({
-        children: node.content
-          ?.filter((c) => c.type === 'text')
-          .map((c) => buildTextRun(c as TextNode)) || [],
+        children: (node.content || [])
+          .map((c) => buildParagraphChild(c as TextNode | ImageNode, context))
+          .filter(Boolean) as (TextRun | ImageRun)[],
       })
 
     case 'heading': {
       const headingNode = node as HeadingNode
       return new Paragraph({
         heading: getHeadingLevel(headingNode.level),
-        children: headingNode.content
-          ?.filter((c) => c.type === 'text')
-          .map((c) => buildTextRun(c as TextNode)) || [],
+        children: (headingNode.content || [])
+          .filter((c) => c.type === 'text')
+          .map((c) => buildTextRun(c as TextNode)),
       })
     }
 
     case 'bulletList':
     case 'orderedList':
-      // Lists are expanded into individual paragraphs with bullet/numbering config
-      return buildListItems(node as AnyExportNode, 0) as unknown as Paragraph
+      return buildListItems(node as AnyExportNode, context, 0) as unknown as Paragraph
 
     case 'table':
-      return buildTable(node as TableNode) as unknown as Paragraph
+      return buildTable(node as TableNode, context) as unknown as Paragraph
+
+    case 'image': {
+      const run = buildImageRun(node as ImageNode, context)
+      if (!run) return null
+      return new Paragraph({
+        children: [run],
+        alignment: node.alignment ? getParagraphAlignment(node.alignment) : undefined,
+      })
+    }
 
     case 'tableRow':
     case 'tableHeader':
@@ -82,56 +107,116 @@ const buildDocxNode = (node: AnyExportNode): Paragraph | Paragraph[] | null => {
   }
 }
 
-const buildTable = (node: TableNode) => {
+const buildParagraphChild = (
+  child: TextNode | ImageNode,
+  context: ExportContext
+): TextRun | ImageRun | null => {
+  if (child.type === 'text') {
+    return buildTextRun(child as TextNode)
+  }
+  if (child.type === 'image') {
+    return buildImageRun(child as ImageNode, context)
+  }
+  return null
+}
+
+const buildImageRun = (node: ImageNode, context: ExportContext): ImageRun | null => {
+  const asset = context.resolvedAssets.get(node.src)
+  if (!asset) return null
+
+  const width = node.width || DEFAULT_IMAGE_WIDTH
+  const height = node.height || width * 0.75
+
+  const finalWidth = Math.min(width, MAX_IMAGE_WIDTH)
+  const scale = finalWidth / width
+  const finalHeight = height * scale
+
+  let imageType: 'png' | 'jpg' = 'png'
+  if (
+    asset.mimeType.toLowerCase() === 'image/jpeg' ||
+    asset.mimeType.toLowerCase() === 'image/jpg'
+  ) {
+    imageType = 'jpg'
+  }
+
+  return new ImageRun({
+    data: asset.data,
+    transformation: {
+      width: finalWidth,
+      height: finalHeight,
+    },
+    type: imageType,
+  })
+}
+
+const getParagraphAlignment = (align: 'left' | 'center' | 'right') => {
+  switch (align) {
+    case 'left':
+      return AlignmentType.LEFT
+    case 'center':
+      return AlignmentType.CENTER
+    case 'right':
+      return AlignmentType.RIGHT
+    default:
+      return AlignmentType.LEFT
+  }
+}
+
+const buildTable = (node: TableNode, context: ExportContext) => {
   const rows = node.content || []
   return new Table({
     width: {
       size: 100,
       type: WidthType.PERCENTAGE,
     },
-    rows: rows.map(r => buildTableRow(r)),
+    rows: rows.map((r) => buildTableRow(r, context)),
   })
 }
 
-const buildTableRow = (node: TableRowNode) => {
+const buildTableRow = (node: TableRowNode, context: ExportContext) => {
   const cells = node.content || []
   return new TableRow({
-    children: cells.map(c => buildTableCell(c)),
+    children: cells.map((c) => buildTableCell(c, context)),
   })
 }
 
-const buildTableCell = (node: TableHeaderNode | TableCellNode) => {
+const buildTableCell = (node: TableHeaderNode | TableCellNode, context: ExportContext) => {
   const cellContent = node.content || []
   return new TableCell({
-    children: cellContent.flatMap(c => buildDocxNode(c)).filter(Boolean) as Paragraph[],
+    children: cellContent
+      .flatMap((c) => buildDocxNode(c, context))
+      .filter(Boolean) as Paragraph[],
   })
 }
 
-const buildListItems = (listNode: AnyExportNode, level: number = 0): Paragraph[] => {
+const buildListItems = (
+  listNode: AnyExportNode,
+  context: ExportContext,
+  level: number = 0
+): Paragraph[] => {
   const isOrdered = listNode.type === 'orderedList'
   const items: Paragraph[] = []
 
   if (listNode.type === 'bulletList' || listNode.type === 'orderedList') {
-    const listItems = listNode.content as AnyExportNode[] || []
-    
+    const listItems = (listNode.content as AnyExportNode[]) || []
+
     listItems.forEach((li) => {
       if (li.type !== 'listItem') return
-      
+
       const liContent = li.content || []
       liContent.forEach((child) => {
         if (child.type === 'paragraph') {
           items.push(
             new Paragraph({
               children: (child.content || [])
-                .filter((c) => c.type === 'text')
-                .map((c) => buildTextRun(c as TextNode)),
+                .map((c) => buildParagraphChild(c as TextNode | ImageNode, context))
+                .filter(Boolean) as (TextRun | ImageRun)[],
               bullet: !isOrdered ? { level } : undefined,
               numbering: isOrdered ? { reference: 'ordered', level } : undefined,
             })
           )
         } else if (child.type === 'bulletList' || child.type === 'orderedList') {
-          // Nested lists
-          items.push(...buildListItems(child, level + 1))
+          items.push(...buildListItems(child, context, level + 1))
         }
       })
     })

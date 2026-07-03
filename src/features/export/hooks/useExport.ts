@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useEditorContext } from '../../editor/providers/EditorProvider'
 import { executeExport } from '../services/exportEngine'
 import { SupportedExportFormats } from '../constants/export'
+import { BrowserAssetResolver } from '../utils/assetResolver'
 import type { ExportState, ExportResult } from '../types'
 
 export const useExport = () => {
@@ -9,6 +10,9 @@ export const useExport = () => {
   const [exportState, setExportState] = useState<ExportState>('idle')
   const [lastResult, setLastResult] = useState<ExportResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // Memoize BrowserAssetResolver to avoid recreating it
+  const assetResolver = useMemo(() => new BrowserAssetResolver(), [])
 
   const reset = useCallback(() => {
     setExportState('idle')
@@ -24,7 +28,12 @@ export const useExport = () => {
       setError(null)
       
       const content = editor.getJSON()
-      const result = await executeExport(SupportedExportFormats.DOCX, content, documentTitle)
+      const result = await executeExport(
+        SupportedExportFormats.DOCX,
+        content,
+        documentTitle,
+        { assetResolver }
+      )
       
       setLastResult(result)
 
@@ -40,7 +49,7 @@ export const useExport = () => {
       setExportState('error')
       setError(err instanceof Error ? err.message : 'Unknown export error')
     }
-  }, [editor, documentTitle, reset])
+  }, [editor, documentTitle, assetResolver, reset])
 
   return {
     exportState,

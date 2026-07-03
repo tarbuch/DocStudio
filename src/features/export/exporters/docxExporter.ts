@@ -1,12 +1,14 @@
 import { Packer, Document } from 'docx'
 import { DEFAULT_FILENAME, DOCX_EXTENSION } from '../constants/export'
+import type { ExportContext } from '../types'
 
 /**
  * Handles browser-specific download logic for DOCX.
  * Receives a built docx.Document and triggers the download.
  */
-export const docxExporter = async (docxDocument: Document, title: string): Promise<string> => {
+export const docxExporter = async (docxDocument: Document, context: ExportContext): Promise<string> => {
   try {
+    const title = context.documentTitle
     // Step 1: Pack to binary Blob
     const blob = await Packer.toBlob(docxDocument)
 

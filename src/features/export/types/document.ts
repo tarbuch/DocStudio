@@ -5,6 +5,7 @@ export interface ExportMetrics {
   headings: number
   lists: number
   tables: number
+  images: number
   unsupportedNodes: number
 }
 
