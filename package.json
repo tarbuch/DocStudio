@@ -10,11 +10,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@base-ui/react": "^1.6.0",
+    "@tiptap/extension-bubble-menu": "^3.27.1",
+    "@tiptap/extension-character-count": "^3.27.1",
+    "@tiptap/extension-underline": "^3.27.1",
     "@tiptap/pm": "^3.27.1",
     "@tiptap/react": "^3.27.1",
     "@tiptap/starter-kit": "^3.27.1",
+    "@tiptap/suggestion": "^3.27.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.42.2",
+    "lucide-react": "^1.23.0",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "tailwind-merge": "^3.6.0",
+    "tippy.js": "^6.3.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

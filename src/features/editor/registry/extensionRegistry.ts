@@ -1,4 +1,7 @@
 import StarterKit from '@tiptap/starter-kit'
+import Underline from '@tiptap/extension-underline'
+import CharacterCount from '@tiptap/extension-character-count'
+import { SlashCommand } from '../extensions/slash/SlashCommand'
 
 /**
  * Extension Registry centralizes all Tiptap extensions.
@@ -10,4 +13,8 @@ export const getExtensions = () => [
       levels: [1, 2, 3],
     },
   }),
+  Underline,
+  CharacterCount,
+  SlashCommand,
 ]
+
