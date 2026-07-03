@@ -46,27 +46,33 @@ export const executeExport = async (
     // 2. Traversal to pre-collect image assets
     const uniqueSrcs = collectImageSrcs(ast.content)
 
+    const failedResolutions: { src: string; reason: string }[] = []
+
     if (options.assetResolver && uniqueSrcs.length > 0) {
-      const resolutions = await Promise.all(
+      const resolutions = await Promise.allSettled(
         uniqueSrcs.map(async (src) => {
-          try {
-            const asset = await options.assetResolver!.resolve(src)
-            return { src, asset }
-          } catch (e) {
-            console.warn(`Failed resolving image: ${src}`, e)
-            return { src, asset: null }
+          const asset = await options.assetResolver!.resolve(src)
+          if (!asset) {
+            throw new Error(`Resolver returned null for ${src}`)
           }
+          return { src, asset }
         })
       )
 
-      for (const { src, asset } of resolutions) {
-        if (asset) {
-          resolvedAssets.set(src, asset)
+      resolutions.forEach((result, index) => {
+        const src = uniqueSrcs[index]
+        if (result.status === 'fulfilled') {
+          resolvedAssets.set(src, result.value.asset)
           assetsResolved++
         } else {
           assetsFailed++
+          failedResolutions.push({
+            src,
+            reason: result.reason instanceof Error ? result.reason.message : 'Unknown error',
+          })
+          console.warn(`Failed resolving image: ${src}`, result.reason)
         }
-      }
+      })
     } else {
       assetsSkipped = uniqueSrcs.length
     }
@@ -89,6 +95,12 @@ export const executeExport = async (
       validationResult.issues.push({
         severity: 'WARNING',
         message: `Failed to resolve ${assetsFailed} image asset(s). Omitted from final document.`,
+      })
+      failedResolutions.forEach(({ src, reason }) => {
+        validationResult.issues.push({
+          severity: 'WARNING',
+          message: `Image failed [${src}]: ${reason}`,
+        })
       })
     }
 

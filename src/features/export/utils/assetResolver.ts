@@ -6,7 +6,19 @@ import type { AssetResolver, ResolvedAsset } from '../types/pipeline'
  * Restricts images to PNG and JPEG.
  */
 export class BrowserAssetResolver implements AssetResolver {
+  private cache = new Map<string, Promise<ResolvedAsset | null>>()
+
   async resolve(src: string): Promise<ResolvedAsset | null> {
+    if (this.cache.has(src)) {
+      return this.cache.get(src)!
+    }
+
+    const promise = this.performResolve(src)
+    this.cache.set(src, promise)
+    return promise
+  }
+
+  private async performResolve(src: string): Promise<ResolvedAsset | null> {
     try {
       // 1. Handle Base64 Data URIs
       if (src.startsWith('data:')) {
@@ -33,8 +45,8 @@ export class BrowserAssetResolver implements AssetResolver {
         }
       }
 
-      // 2. Handle HTTP/HTTPS URLs
-      if (src.startsWith('http://') || src.startsWith('https://')) {
+      // 2. Handle HTTP/HTTPS/Blob URLs
+      if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('blob:')) {
         const response = await fetch(src)
         if (!response.ok) return null
 

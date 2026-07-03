@@ -131,11 +131,11 @@ const buildImageRun = (node: ImageNode, context: ExportContext): ImageRun | null
   const scale = finalWidth / width
   const finalHeight = height * scale
 
+  const lowerMime = asset.mimeType.toLowerCase()
+  if (!lowerMime.startsWith('image/')) return null
+
   let imageType: 'png' | 'jpg' = 'png'
-  if (
-    asset.mimeType.toLowerCase() === 'image/jpeg' ||
-    asset.mimeType.toLowerCase() === 'image/jpg'
-  ) {
+  if (lowerMime === 'image/jpeg' || lowerMime === 'image/jpg') {
     imageType = 'jpg'
   }
 

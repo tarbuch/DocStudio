@@ -1,0 +1,17 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "image",
+          "attrs": {
+            "src": "https://dummyimage.com/600x400/000/fff.png",
+            "alt": "Remote HTTP image"
+          }
+        }
+      ]
+    }
+  ]
+}

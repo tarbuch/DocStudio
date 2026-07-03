@@ -1,0 +1,21 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "image",
+          "attrs": {
+            "src": "blob:http://localhost:5173/d41d8cd98f00b204e9800998ecf8427e",
+            "alt": "Local blob preview",
+            "title": "Preview",
+            "width": 800,
+            "height": 600,
+            "alignment": "center"
+          }
+        }
+      ]
+    }
+  ]
+}
