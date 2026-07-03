@@ -1,6 +1,5 @@
 import type { DocumentData } from '../types'
-
-const STORAGE_KEY = 'docstudio.current-document'
+import { STORAGE_KEY } from '../constants/storage'
 
 /**
  * Persists the DocumentData payload to LocalStorage.

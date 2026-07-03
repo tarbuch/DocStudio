@@ -1,5 +1,6 @@
 import type { JSONContent } from '@tiptap/core'
 import type { DocumentData } from '../types'
+import { DOCUMENT_VERSION } from '../constants/storage'
 
 /**
  * Serializes the raw TipTap JSON representation into a standardized Application DocumentData model.
@@ -19,6 +20,6 @@ export const serializeDocument = (
     title,
     content,
     updatedAt: new Date().toISOString(),
-    version: 1,
+    version: DOCUMENT_VERSION,
   }
 }

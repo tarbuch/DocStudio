@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { useEditorConfig } from '../hooks/useEditorConfig'
 import { createEditorCommands } from '../commands/editorCommands'
+import { useAutosave } from '../../autosave/hooks/useAutosave'
 import type { EditorContextType, EditorConfigProps } from '../types'
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined)
@@ -36,9 +37,13 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children, initia
   }, [editor])
 
   const commands = createEditorCommands(editor)
+  
+  // Phase 6.2 Autosave Engine Integration
+  // For now, hardcode ID and Title. Real integration happens when we add multi-doc support.
+  const { saveState } = useAutosave(editor, 'default-doc-id', 'Untitled Document')
 
   return (
-    <EditorContext.Provider value={{ editor, isLoading, isError, commands }}>
+    <EditorContext.Provider value={{ editor, isLoading, isError, commands, saveState }}>
       {children}
     </EditorContext.Provider>
   )
