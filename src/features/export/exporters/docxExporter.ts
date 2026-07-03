@@ -2,6 +2,7 @@ import { Packer } from 'docx'
 import type { JSONContent } from '@tiptap/core'
 import { parseTipTapToAST } from '../parser/parser'
 import { buildDocx } from '../builders/docxBuilder'
+import { DEFAULT_FILENAME, DOCX_EXTENSION } from '../constants/export'
 
 /**
  * Orchestrates the DOCX export pipeline:
@@ -24,7 +25,7 @@ export const exportToDocx = async (content: JSONContent, title: string): Promise
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'document'}.docx`
+    a.download = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || DEFAULT_FILENAME}${DOCX_EXTENSION}`
     document.body.appendChild(a)
     a.click()
     
@@ -33,6 +34,6 @@ export const exportToDocx = async (content: JSONContent, title: string): Promise
     URL.revokeObjectURL(url)
   } catch (error) {
     console.error('Failed to export DOCX:', error)
-    throw error
+    throw new Error(`Export pipeline failed: ${error instanceof Error ? error.message : 'Unknown error'}`, { cause: error })
   }
 }

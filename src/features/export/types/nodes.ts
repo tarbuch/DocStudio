@@ -46,7 +46,7 @@ export interface OrderedListNode extends BaseExportNode {
 
 export interface ListItemNode extends BaseExportNode {
   type: 'listItem'
-  content?: (ParagraphNode | BulletListNode | OrderedListNode | UnsupportedNode)[]
+  content?: AnyExportNode[]
 }
 
 export interface UnsupportedNode extends BaseExportNode {
@@ -62,10 +62,3 @@ export type AnyExportNode =
   | OrderedListNode 
   | ListItemNode 
   | UnsupportedNode
-
-export interface DocumentAST {
-  type: 'document'
-  content: AnyExportNode[]
-}
-
-export type ExportState = 'idle' | 'exporting' | 'success' | 'error'
