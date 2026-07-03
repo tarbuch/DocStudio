@@ -12,4 +12,6 @@ export interface EditorContextType {
   isError: boolean
   commands: ReturnType<typeof import('./commands/editorCommands').createEditorCommands>
   saveState: SaveState
+  documentTitle: string
+  setDocumentTitle: (title: string) => void
 }

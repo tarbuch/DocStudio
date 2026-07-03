@@ -1,28 +1,30 @@
 import { useState } from 'react'
+import { useEditorContext } from '../editor/providers/EditorProvider'
 
-export const useDocumentTitle = (initialTitle: string = 'Untitled Document') => {
-  const [title, setTitle] = useState(initialTitle)
+export const useDocumentTitle = () => {
+  const { documentTitle, setDocumentTitle } = useEditorContext()
   const [isEditing, setIsEditing] = useState(false)
-  const [draftTitle, setDraftTitle] = useState(initialTitle)
+  const [draftTitle, setDraftTitle] = useState(documentTitle)
 
   const startEditing = () => {
-    setDraftTitle(title)
+    setDraftTitle(documentTitle)
     setIsEditing(true)
   }
 
   const commitEditing = () => {
     const trimmed = draftTitle.trim()
-    setTitle(trimmed === '' ? 'Untitled Document' : trimmed)
+    const newTitle = trimmed === '' ? 'Untitled Document' : trimmed
+    setDocumentTitle(newTitle)
     setIsEditing(false)
   }
 
   const cancelEditing = () => {
-    setDraftTitle(title)
+    setDraftTitle(documentTitle)
     setIsEditing(false)
   }
 
   return {
-    title,
+    title: documentTitle,
     draftTitle,
     isEditing,
     setDraftTitle,
