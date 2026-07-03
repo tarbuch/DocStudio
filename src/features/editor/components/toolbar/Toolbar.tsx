@@ -13,7 +13,8 @@ import {
   Strikethrough,
   List,
   ListOrdered,
-  Table
+  Table,
+  ImageIcon
 } from 'lucide-react'
 
 export const Toolbar: React.FC = () => {
@@ -115,6 +116,23 @@ export const Toolbar: React.FC = () => {
           shortcut=""
           onClick={commands.insertTable}
           isDisabled={!commands.canInsertTable()}
+        />
+        <ToolbarButton
+          icon={ImageIcon}
+          label="Insert Image"
+          shortcut=""
+          onClick={() => {
+            const input = document.createElement('input')
+            input.type = 'file'
+            input.accept = 'image/*'
+            input.onchange = async (e) => {
+              const file = (e.target as HTMLInputElement).files?.[0]
+              if (file) {
+                await commands.insertImage(file)
+              }
+            }
+            input.click()
+          }}
         />
       </ToolbarGroup>
     </div>

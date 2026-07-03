@@ -59,6 +59,22 @@ export const createEditorCommands = (editor: Editor | null) => {
 
     canModifyTable: () => editor?.isActive('table') ?? false,
 
+    // Images
+    insertImage: async (file: File) => {
+      if (!editor) return
+      // We simulate upload inline here since the command layer doesn't have hooks
+      const url = URL.createObjectURL(file)
+      editor.chain().focus().insertContent({ type: 'image', attrs: { src: url } }).run()
+    },
+    removeImage: () => {
+      if (editor?.isActive('image')) {
+        editor.chain().focus().deleteSelection().run()
+      }
+    },
+    alignImageLeft: () => editor?.chain().focus().updateAttributes('image', { align: 'left' }).run(),
+    alignImageCenter: () => editor?.chain().focus().updateAttributes('image', { align: 'center' }).run(),
+    alignImageRight: () => editor?.chain().focus().updateAttributes('image', { align: 'right' }).run(),
+
     getWordCount: () => editor?.storage.characterCount?.words() ?? 0,
     getCharacterCount: () => editor?.storage.characterCount?.characters() ?? 0,
   }

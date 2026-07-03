@@ -94,11 +94,22 @@ export const slashCommandSuggestion: Omit<SuggestionOptions, 'editor'> = {
       },
       {
         title: 'Image',
-        description: 'Upload or embed an image.',
+        description: 'Upload an image from your computer.',
         icon: ImageIcon,
         command: ({ editor, range }: { editor: Editor; range: Range }) => {
           editor.chain().focus().deleteRange(range).run()
-          console.log('Image feature coming soon')
+          // Trigger a hidden file input click
+          const input = document.createElement('input')
+          input.type = 'file'
+          input.accept = 'image/*'
+          input.onchange = async (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0]
+            if (file) {
+              const commands = createEditorCommands(editor)
+              await commands.insertImage(file)
+            }
+          }
+          input.click()
         },
       },
     ].filter(item => item.title.toLowerCase().startsWith(query.toLowerCase())).slice(0, 10)

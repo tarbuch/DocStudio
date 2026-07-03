@@ -6,6 +6,7 @@ import { TableRow } from '@tiptap/extension-table-row'
 import { TableHeader } from '@tiptap/extension-table-header'
 import { TableCell } from '@tiptap/extension-table-cell'
 import { SlashCommand } from '../extensions/slash/SlashCommand'
+import { ImageExtension } from '../extensions/images/ImageExtension'
 
 /**
  * Extension Registry centralizes all Tiptap extensions.
@@ -28,6 +29,7 @@ export const getExtensions = () => [
   TableRow,
   TableHeader,
   TableCell,
+  ImageExtension,
   SlashCommand,
 ]
 

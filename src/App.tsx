@@ -3,7 +3,7 @@ import { WorkspaceLayout } from '@/features/workspace/components/WorkspaceLayout
 
 function App() {
   return (
-    <EditorProvider initialContent="<h2>DocStudio Workspace</h2><p>Begin crafting your document here...</p>">
+    <EditorProvider initialContent="">
       <WorkspaceLayout />
     </EditorProvider>
   )
