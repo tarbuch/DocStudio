@@ -1,5 +1,5 @@
 import type { Editor, JSONContent } from '@tiptap/core'
-import type { SaveState } from '../autosave/hooks/useAutosave'
+
 
 export interface EditorConfigProps {
   initialContent?: string
@@ -11,7 +11,4 @@ export interface EditorContextType {
   isLoading: boolean
   isError: boolean
   commands: ReturnType<typeof import('./commands/editorCommands').createEditorCommands>
-  saveState: SaveState
-  documentTitle: string
-  setDocumentTitle: (title: string) => void
 }

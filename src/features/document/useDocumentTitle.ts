@@ -1,30 +1,42 @@
-import { useState } from 'react'
-import { useEditorContext } from '../editor/providers/EditorProvider'
+import { useState, useEffect } from 'react'
+import { useDocumentContext } from '../documents/providers/DocumentProvider'
+import { renameDocument } from '../documents/services/documentManager'
 
 export const useDocumentTitle = () => {
-  const { documentTitle, setDocumentTitle } = useEditorContext()
+  const { activeDocumentId, activeDocumentMeta } = useDocumentContext()
   const [isEditing, setIsEditing] = useState(false)
-  const [draftTitle, setDraftTitle] = useState(documentTitle)
+  const [draftTitle, setDraftTitle] = useState(activeDocumentMeta?.title || 'Untitled Document')
+
+  useEffect(() => {
+    if (!isEditing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDraftTitle(activeDocumentMeta?.title || 'Untitled Document')
+    }
+  }, [activeDocumentMeta?.title, isEditing])
 
   const startEditing = () => {
-    setDraftTitle(documentTitle)
+    setDraftTitle(activeDocumentMeta?.title || 'Untitled Document')
     setIsEditing(true)
   }
 
   const commitEditing = () => {
     const trimmed = draftTitle.trim()
     const newTitle = trimmed === '' ? 'Untitled Document' : trimmed
-    setDocumentTitle(newTitle)
+    if (activeDocumentId) {
+      renameDocument(activeDocumentId, newTitle)
+      // Since we don't have a global state for activeDocumentMeta that updates proactively here (unless refreshLibrary is called in Sidebar), we might need to rely on the sidebar polling or we can just update it locally.
+      // But the sidebar refreshes on its own.
+    }
     setIsEditing(false)
   }
 
   const cancelEditing = () => {
-    setDraftTitle(documentTitle)
+    setDraftTitle(activeDocumentMeta?.title || 'Untitled Document')
     setIsEditing(false)
   }
 
   return {
-    title: documentTitle,
+    title: activeDocumentMeta?.title || 'Untitled Document',
     draftTitle,
     isEditing,
     setDraftTitle,
@@ -33,3 +45,4 @@ export const useDocumentTitle = () => {
     cancelEditing,
   }
 }
+

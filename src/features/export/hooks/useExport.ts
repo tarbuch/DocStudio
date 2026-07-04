@@ -1,12 +1,15 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useEditorContext } from '../../editor/providers/EditorProvider'
+import { useDocumentContext } from '../../documents/providers/DocumentProvider'
 import { executeExport } from '../services/exportEngine'
 import { SupportedExportFormats } from '../constants/export'
 import { BrowserAssetResolver } from '../utils/assetResolver'
 import type { ExportState, ExportResult } from '../types'
 
 export const useExport = () => {
-  const { editor, documentTitle } = useEditorContext()
+  const { editor } = useEditorContext()
+  const { activeDocumentMeta } = useDocumentContext()
+  const documentTitle = activeDocumentMeta?.title || 'Untitled Document'
   const [exportState, setExportState] = useState<ExportState>('idle')
   const [lastResult, setLastResult] = useState<ExportResult | null>(null)
   const [error, setError] = useState<string | null>(null)

@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import type { Editor } from '@tiptap/core'
 import { debounce } from '../utils/debounce'
-import { serializeDocument } from '../services/serializer'
-import { saveDocument, loadDocument } from '../services/storage'
+import { storageProvider } from '../../documents/services/documentStorage'
+import { incrementDocumentRevision } from '../../documents/services/documentManager'
 
 export type SaveState = 'idle' | 'typing' | 'saving' | 'saved'
 
@@ -11,45 +11,51 @@ export function useAutosave(
   documentId: string,
   title: string
 ) {
-  const [saveState, setSaveState] = useState<SaveState>(() => {
-    return loadDocument() ? 'saved' : 'idle'
-  })
-  // Initialize payload tracking immediately if editor is available 
-  // to prevent hydration loops or false-positive saves on load.
+  const [saveState, setSaveState] = useState<SaveState>('idle')
+  
   const previousPayloadRef = useRef<string | null>(
     editor ? JSON.stringify(editor.getJSON()) : null
   )
 
+  // We maintain a ref to the latest save function so flushAutosave can call it
+  const executeSaveRef = useRef<() => Promise<void>>(async () => {})
+
   useEffect(() => {
-    if (!editor) return
+    if (!editor || documentId === 'temp') return
     
-    // Make sure we have the initial payload captured when the editor activates
     if (previousPayloadRef.current === null) {
       previousPayloadRef.current = JSON.stringify(editor.getJSON())
     }
 
-    const executeSave = () => {
+    const executeSave = async () => {
       setSaveState('saving')
       const content = editor.getJSON()
-      const documentData = serializeDocument(documentId, title, content)
+      const payloadString = JSON.stringify(content)
       
-      const payloadString = JSON.stringify(documentData.content)
-      
-      // Avoid saving identical payloads
       if (previousPayloadRef.current === payloadString) {
         setSaveState('saved')
         return
       }
 
-      const success = saveDocument(documentData)
-      
-      if (success) {
+      try {
+        await storageProvider.saveContent(documentId, { 
+          content,
+          lastSelection: {
+            from: editor.state.selection.from,
+            to: editor.state.selection.to,
+          }
+        })
+        await incrementDocumentRevision(documentId)
+
         previousPayloadRef.current = payloadString
         setSaveState('saved')
-      } else {
-        setSaveState('idle') // fallback or could add 'error' state
+      } catch (e) {
+        console.error('Failed to autosave', e)
+        setSaveState('idle')
       }
     }
+
+    executeSaveRef.current = executeSave
 
     const debouncedSave = debounce(executeSave, 2000)
 
@@ -66,5 +72,9 @@ export function useAutosave(
     }
   }, [editor, documentId, title])
 
-  return { saveState }
+  const flushAutosave = useCallback(async () => {
+    await executeSaveRef.current()
+  }, [])
+
+  return { saveState, flushAutosave }
 }

@@ -3,9 +3,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { useEditorConfig } from '../hooks/useEditorConfig'
 import { createEditorCommands } from '../commands/editorCommands'
-import { useAutosave } from '../../autosave/hooks/useAutosave'
-import { loadDocument, removeDocument } from '../../autosave/services/storage'
-import { deserializeDocument } from '../../autosave/services/deserializer'
 import type { EditorContextType, EditorConfigProps } from '../types'
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined)
@@ -15,13 +12,8 @@ interface EditorProviderProps extends EditorConfigProps {
 }
 
 export const EditorProvider: React.FC<EditorProviderProps> = ({ children, initialContent, onUpdate }) => {
-  const [isError, setIsError] = useState(false)
+  const [isError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [documentTitle, setDocumentTitle] = useState(() => {
-    const stored = loadDocument()
-    return stored?.title || 'Untitled Document'
-  })
-  const [hasHydrated, setHasHydrated] = useState(false)
 
   const editor = useEditorConfig({
     initialContent,
@@ -29,49 +21,21 @@ export const EditorProvider: React.FC<EditorProviderProps> = ({ children, initia
   })
 
   useEffect(() => {
-    try {
-      if (editor) {
-        if (!hasHydrated) {
-          const storedDoc = loadDocument()
-          if (storedDoc) {
-            const deserialized = deserializeDocument(storedDoc)
-            if (deserialized) {
-              editor.commands.setContent(deserialized)
-            } else {
-              removeDocument()
-            }
-          }
-          // eslint-disable-next-line react-hooks/set-state-in-effect
-          setHasHydrated(true)
-        }
-        setIsLoading(false)
-      }
-    } catch (e) {
-      console.error('Failed to initialize Tiptap editor', e)
-      setIsError(true)
+    if (editor) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(false)
     }
-  }, [editor, hasHydrated])
+  }, [editor])
 
-  const commands = createEditorCommands(editor)
-  
-  // Phase 6.2 Autosave Engine Integration
-  // Real integration uses the hydrated title
-  const { saveState } = useAutosave(
-    hasHydrated ? editor : null, 
-    'default-doc-id', 
-    documentTitle
-  )
+  const commands = editor ? createEditorCommands(editor) : {}
 
   return (
     <EditorContext.Provider value={{ 
       editor, 
       isLoading, 
       isError, 
-      commands, 
-      saveState, 
-      documentTitle, 
-      setDocumentTitle 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      commands: commands as any
     }}>
       {children}
     </EditorContext.Provider>

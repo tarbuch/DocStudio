@@ -4,6 +4,8 @@ import { PageContainer } from './PageContainer'
 import { StatusBar } from './StatusBar'
 import { Toolbar } from '../../editor/components/toolbar/Toolbar'
 import { EditorCanvas } from '../../editor/components/EditorCanvas'
+import { DocumentSidebar } from '../../documents/components/DocumentSidebar'
+import { OutlineSidebar } from '../../outline/components/OutlineSidebar'
 
 export const WorkspaceLayout: React.FC = () => {
   return (
@@ -16,7 +18,9 @@ export const WorkspaceLayout: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden relative flex flex-col bg-muted/20">
+      <div className="flex-1 overflow-hidden relative flex flex-row bg-muted/20">
+        <DocumentSidebar />
+        <OutlineSidebar />
         <PageContainer>
           <EditorCanvas />
         </PageContainer>
