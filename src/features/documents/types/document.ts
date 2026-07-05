@@ -42,6 +42,13 @@ export interface DocumentContent {
   lastSelection?: DocumentSelection
 }
 
+export interface DocumentSnapshot {
+  id: string
+  documentId: string
+  timestamp: number
+  content: DocumentContent
+}
+
 export interface AppPreferences {
   activeDocumentId: string | null
   documentsSidebarCollapsed: boolean

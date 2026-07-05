@@ -30,13 +30,18 @@ export interface TextNode extends BaseExportNode {
 
 export interface ParagraphNode extends BaseExportNode {
   type: 'paragraph'
-  content?: (TextNode | ImageNode | UnsupportedNode)[]
+  content?: (TextNode | ImageNode)[]
+  alignment?: 'left' | 'center' | 'right' | 'justify'
+  keepTogether?: boolean
+  pageBreakBefore?: boolean
 }
 
 export interface HeadingNode extends BaseExportNode {
   type: 'heading'
   level: number
   content?: (TextNode | UnsupportedNode)[]
+  alignment?: 'left' | 'center' | 'right' | 'justify'
+  pageBreakBefore?: boolean
 }
 
 export interface BulletListNode extends BaseExportNode {

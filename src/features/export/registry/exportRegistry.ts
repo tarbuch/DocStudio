@@ -4,6 +4,8 @@ import { parseTipTapToAST } from '../parser/parser'
 import { validateExport } from '../validator/exportValidator'
 import { buildDocx } from '../builders/docxBuilder'
 import { docxExporter } from '../exporters/docxExporter'
+import { PdfMakeBuilder } from '../builders/pdfmake/PdfMakeBuilder'
+import { PdfMakeExporter } from '../exporters/pdfmake/PdfMakeExporter'
 
 export interface VersionedPipelines {
   versions: Record<string, ExportPipeline<unknown>>
@@ -27,6 +29,19 @@ export const exportRegistry: Record<SupportedExportFormat, VersionedPipelines | 
     },
     current: 'v1',
   },
+  pdf: {
+    versions: {
+      v1: {
+        version: 'v1',
+        parser: parseTipTapToAST,
+        validator: validateExport,
+        builder: PdfMakeBuilder,
+        exporter: PdfMakeExporter as unknown as ExportExporter<unknown>,
+      },
+    },
+    current: 'v1',
+  },
+  print: null,
   html: null,
   markdown: null,
 }

@@ -28,6 +28,9 @@ import { DEFAULT_IMAGE_WIDTH, MAX_IMAGE_WIDTH } from '../constants/export'
  * (Pure & Synchronous Transformation Layer)
  */
 export const buildDocx = (context: ExportContext): Document => {
+  const mmToTwips = (mm: number) => mm * 56.6929133858 // 1440 twips / 25.4 mm
+  const { layout } = context
+
   const children = context.ast.content
     .flatMap((node) => buildDocxNode(node, context))
     .filter(Boolean) as Paragraph[]
@@ -52,7 +55,20 @@ export const buildDocx = (context: ExportContext): Document => {
     },
     sections: [
       {
-        properties: {},
+        properties: {
+          page: {
+            size: {
+              width: mmToTwips(layout.width),
+              height: mmToTwips(layout.height),
+            },
+            margin: {
+              top: mmToTwips(layout.margins.top),
+              right: mmToTwips(layout.margins.right),
+              bottom: mmToTwips(layout.margins.bottom),
+              left: mmToTwips(layout.margins.left),
+            },
+          },
+        },
         children,
       },
     ],
@@ -121,7 +137,7 @@ const buildParagraphChild = (
 }
 
 const buildImageRun = (node: ImageNode, context: ExportContext): ImageRun | null => {
-  const asset = context.resolvedAssets.get(node.src)
+  const asset = context.assets.get(node.src)
   if (!asset) return null
 
   const width = node.width || DEFAULT_IMAGE_WIDTH

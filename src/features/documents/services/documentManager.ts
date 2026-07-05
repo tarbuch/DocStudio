@@ -1,8 +1,9 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { JSONContent } from '@tiptap/core'
-import type { DocumentMetadata } from '../types/document'
+import type { DocumentMetadata, DocumentContent, DocumentSnapshot } from '../types/document'
 import { storageProvider } from './documentStorage'
 import { DOCUMENT_CONSTANTS } from '../constants/documents'
+import { reindexDocument } from '../../search/services/searchIndex'
 
 const createEmptyContent = (): JSONContent => ({
   type: 'doc',
@@ -82,6 +83,8 @@ export const createDocument = async (
   library.push(newDoc)
   await storageProvider.saveLibrary(library)
   await storageProvider.saveContent(id, { content: createEmptyContent() })
+  
+  void reindexDocument(id)
 
   return newDoc
 }
@@ -113,6 +116,8 @@ export const duplicateDocument = async (id: string): Promise<DocumentMetadata | 
   
   // Deep copy content
   await storageProvider.saveContent(newId, JSON.parse(JSON.stringify(sourceContent)))
+  
+  void reindexDocument(newId)
 
   return newDoc
 }
@@ -124,6 +129,9 @@ export const updateDocumentMetadata = async (id: string, updates: Partial<Docume
 
   library[index] = { ...library[index], ...updates, updatedAt: Date.now() }
   await storageProvider.saveLibrary(library)
+  
+  void reindexDocument(id)
+  
   return library[index]
 }
 
@@ -164,4 +172,23 @@ export const recordDocumentOpened = async (id: string): Promise<DocumentMetadata
 
 export const moveDocument = async (id: string, folderId: string | null): Promise<DocumentMetadata | null> => {
   return updateDocumentMetadata(id, { folderId })
+}
+
+export const loadSnapshots = async (documentId: string): Promise<DocumentSnapshot[]> => {
+  return storageProvider.loadSnapshots(documentId)
+}
+
+export const saveSnapshot = async (documentId: string, content: DocumentContent): Promise<DocumentSnapshot> => {
+  const snapshot: DocumentSnapshot = {
+    id: uuidv4(),
+    documentId,
+    timestamp: Date.now(),
+    content
+  }
+  await storageProvider.saveSnapshot(snapshot)
+  return snapshot
+}
+
+export const deleteSnapshot = async (documentId: string, snapshotId: string): Promise<void> => {
+  return storageProvider.deleteSnapshot(documentId, snapshotId)
 }

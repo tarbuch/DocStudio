@@ -3,6 +3,7 @@ export const DOCUMENT_CONSTANTS = {
   STORAGE_KEY_LIBRARY: 'docstudio.library',
   STORAGE_KEY_FOLDER_LIBRARY: 'docstudio.folder.library',
   STORAGE_KEY_DOCUMENT_PREFIX: 'docstudio.document.',
+  STORAGE_KEY_SNAPSHOT_PREFIX: 'docstudio.snapshots.',
   STORAGE_KEY_PREFERENCES: 'docstudio.preferences',
   STORAGE_KEY_TRASH: 'docstudio.trash',
 
@@ -40,4 +41,5 @@ export const DOCUMENT_CONSTANTS = {
   
   // Limits
   MAX_RECENT_DOCUMENTS: 10,
+  MAX_SNAPSHOTS_PER_DOCUMENT: 20,
 }

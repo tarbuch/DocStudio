@@ -1,5 +1,7 @@
 import type { JSONContent } from '@tiptap/core'
 import type { DocumentAST, ExportMetrics } from './document'
+import type { ExportConfiguration } from './configuration'
+import type { PageLayout } from './layout'
 import type { SupportedExportFormat } from '../constants/export'
 
 export type ValidationSeverity = 'INFO' | 'WARNING' | 'ERROR' | 'FATAL'
@@ -37,22 +39,29 @@ export interface ExportOptions {
 }
 
 export interface ExportContext {
+  documentId: string
   documentTitle: string
-  format: SupportedExportFormat
-  options: ExportOptions
+  configuration: ExportConfiguration
+  layout: PageLayout
   ast: DocumentAST
   metrics: ExportMetrics
   validation: ExportValidationResult
-  resolvedAssets: Map<string, ResolvedAsset>
+  assets: Map<string, ResolvedAsset>
 }
 
 export interface ExportResult {
   success: boolean
-  filename?: string
+  filename: string
   format: SupportedExportFormat
   duration: number
+  pages: number
+  fileSize: number
+  warnings: ValidationIssue[]
+  generatedAt: number
+  output?: Blob
+  
+  // Keep legacy metrics for diagnostic
   metrics?: ExportMetrics
-  validation?: ExportValidationResult
   assetsResolved: number
   assetsFailed: number
   assetsSkipped: number

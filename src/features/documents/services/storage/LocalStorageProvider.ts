@@ -1,5 +1,5 @@
 import { DOCUMENT_CONSTANTS } from '../../constants/documents'
-import type { DocumentMetadata, DocumentContent, AppPreferences, FolderMetadata } from '../../types/document'
+import type { DocumentMetadata, DocumentContent, AppPreferences, FolderMetadata, DocumentSnapshot } from '../../types/document'
 import type { DocumentStorageProvider } from './types'
 
 const DEFAULT_PREFERENCES: AppPreferences = {
@@ -121,5 +121,52 @@ export class LocalStorageProvider implements DocumentStorageProvider {
         reject(e)
       }
     })
+  }
+
+  async loadSnapshots(documentId: string): Promise<DocumentSnapshot[]> {
+    return new Promise((resolve) => {
+      try {
+        const data = localStorage.getItem(`${DOCUMENT_CONSTANTS.STORAGE_KEY_SNAPSHOT_PREFIX}${documentId}`)
+        resolve(data ? JSON.parse(data) : [])
+      } catch (e) {
+        console.error(`Failed to load snapshots for ${documentId}`, e)
+        resolve([])
+      }
+    })
+  }
+
+  async saveSnapshot(snapshot: DocumentSnapshot): Promise<void> {
+    try {
+      const snapshots = await this.loadSnapshots(snapshot.documentId)
+      snapshots.unshift(snapshot) // Add to front
+      
+      // Cap to max length
+      if (snapshots.length > DOCUMENT_CONSTANTS.MAX_SNAPSHOTS_PER_DOCUMENT) {
+        snapshots.splice(DOCUMENT_CONSTANTS.MAX_SNAPSHOTS_PER_DOCUMENT)
+      }
+      
+      localStorage.setItem(
+        `${DOCUMENT_CONSTANTS.STORAGE_KEY_SNAPSHOT_PREFIX}${snapshot.documentId}`,
+        JSON.stringify(snapshots)
+      )
+    } catch (e) {
+      console.error(`Failed to save snapshot for ${snapshot.documentId}`, e)
+      throw e
+    }
+  }
+
+  async deleteSnapshot(documentId: string, snapshotId: string): Promise<void> {
+    try {
+      let snapshots = await this.loadSnapshots(documentId)
+      snapshots = snapshots.filter(s => s.id !== snapshotId)
+      
+      localStorage.setItem(
+        `${DOCUMENT_CONSTANTS.STORAGE_KEY_SNAPSHOT_PREFIX}${documentId}`,
+        JSON.stringify(snapshots)
+      )
+    } catch (e) {
+      console.error(`Failed to delete snapshot ${snapshotId}`, e)
+      throw e
+    }
   }
 }

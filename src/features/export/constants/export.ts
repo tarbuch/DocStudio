@@ -4,6 +4,8 @@ export const EXPORT_VERSION = 1
 
 export const SupportedExportFormats = {
   DOCX: 'docx',
+  PDF: 'pdf',
+  PRINT: 'print',
   HTML: 'html',
   MARKDOWN: 'markdown',
 } as const

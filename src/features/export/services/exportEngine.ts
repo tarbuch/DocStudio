@@ -1,7 +1,8 @@
 import type { JSONContent } from '@tiptap/core'
 import type { SupportedExportFormat } from '../constants/export'
-import type { ExportResult, ExportOptions, ExportContext, ResolvedAsset, AnyExportNode } from '../types'
+import type { ExportResult, ExportContext, ResolvedAsset, AnyExportNode, ExportConfiguration, AssetResolver } from '../types'
 import { getExportPipeline } from '../registry/exportRegistry'
+import { resolveLayout } from './layoutResolver'
 
 /**
  * Orchestrates the export pipeline by:
@@ -12,18 +13,25 @@ import { getExportPipeline } from '../registry/exportRegistry'
  * 5. Running the pure, synchronous builder and download exporter.
  */
 export const executeExport = async (
-  format: SupportedExportFormat,
-  content: JSONContent,
+  documentId: string,
   title: string,
-  options: ExportOptions = {}
+  configuration: ExportConfiguration,
+  content: JSONContent,
+  options: { assetResolver?: AssetResolver } = {}
 ): Promise<ExportResult> => {
   const start = performance.now()
+  const format = configuration.format as SupportedExportFormat
   const pipeline = getExportPipeline(format)
   
   if (!pipeline) {
     return {
       success: false,
+      filename: '',
       format,
+      pages: 0,
+      fileSize: 0,
+      warnings: [],
+      generatedAt: Date.now(),
       duration: 0,
       assetsResolved: 0,
       assetsFailed: 0,
@@ -78,13 +86,16 @@ export const executeExport = async (
     }
 
     // 3. Construct base context before validation
+    const layout = resolveLayout(configuration)
+    
     const baseContext: Omit<ExportContext, 'validation'> = {
+      documentId,
       documentTitle: title,
-      format,
-      options,
+      configuration,
+      layout,
       ast,
       metrics: ast.metrics,
-      resolvedAssets,
+      assets: resolvedAssets,
     }
 
     // 4. Validate
@@ -114,10 +125,13 @@ export const executeExport = async (
 
       return {
         success: false,
+        filename: '',
         format,
         duration: performance.now() - start,
-        metrics: ast.metrics,
-        validation: validationResult,
+        pages: 0,
+        fileSize: 0,
+        warnings: validationResult.issues,
+        generatedAt: Date.now(),
         assetsResolved,
         assetsFailed,
         assetsSkipped,
@@ -144,8 +158,10 @@ export const executeExport = async (
       filename,
       format,
       duration,
-      metrics: ast.metrics,
-      validation: validationResult,
+      pages: 1, // Will be updated by exporters if applicable
+      fileSize: 0, // Should be populated by exporters ideally, or left 0
+      warnings: validationResult.issues,
+      generatedAt: Date.now(),
       assetsResolved,
       assetsFailed,
       assetsSkipped,
@@ -154,8 +170,13 @@ export const executeExport = async (
     const duration = performance.now() - start
     return {
       success: false,
+      filename: '',
       format,
       duration,
+      pages: 0,
+      fileSize: 0,
+      warnings: [],
+      generatedAt: Date.now(),
       assetsResolved,
       assetsFailed,
       assetsSkipped,

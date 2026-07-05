@@ -4,6 +4,9 @@ import { fileURLToPath } from 'url'
 import { parseTipTapToAST } from '../parser/parser'
 import { validateExport } from '../validator/exportValidator'
 import { buildDocx } from '../builders/docxBuilder'
+import { PdfMakeBuilder } from '../builders/pdfmake/PdfMakeBuilder'
+import { resolveLayout } from '../services/layoutResolver'
+import { EXPORT_CONFIGURATION_VERSION } from '../types/configuration'
 import type { AssetResolver, ResolvedAsset, ExportContext, AnyExportNode } from '../types'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -72,13 +75,30 @@ async function verifyFixture(fileName: string) {
   }
 
   // 3. Validate
+  const configuration = {
+    version: EXPORT_CONFIGURATION_VERSION,
+    format: 'docx' as const, // Default
+    pageSetup: {
+      size: 'A4' as const,
+      orientation: 'portrait' as const,
+      margins: { top: 25.4, right: 25.4, bottom: 25.4, left: 25.4 } // 1 inch in mm
+    },
+    features: {
+      header: {},
+      footer: {},
+      watermark: { enabled: false, text: '', opacity: 0.2, rotation: -45, color: '#000000' },
+      pageNumbers: { enabled: true, position: 'bottom-right' as const }
+    }
+  }
+
   const baseContext: Omit<ExportContext, 'validation'> = {
+    documentId: 'fixture-doc',
     documentTitle: 'Test Doc',
-    format: 'docx',
-    options: { assetResolver: resolver },
+    configuration,
+    layout: resolveLayout(configuration),
     ast,
     metrics: ast.metrics,
-    resolvedAssets,
+    assets: resolvedAssets,
   }
 
   const validation = validateExport(baseContext)
@@ -89,10 +109,21 @@ async function verifyFixture(fileName: string) {
     validation,
   }
 
-  // 4. Build (Must not throw)
-  const doc = buildDocx(context)
-  if (!doc) {
-    throw new Error(`Failed to build document for fixture: ${fileName}`)
+  // 4. Build DOCX (Must not throw)
+  try {
+    const docxDoc = buildDocx(context)
+    if (!docxDoc) throw new Error('DOCX build returned null')
+  } catch (err) {
+    throw new Error(`Failed to build DOCX for fixture: ${fileName}`, { cause: err })
+  }
+
+  // 5. Build PDF (Must not throw)
+  try {
+    const pdfContext = { ...context, configuration: { ...context.configuration, format: 'pdf' as const } }
+    const pdfDoc = PdfMakeBuilder(pdfContext)
+    if (!pdfDoc) throw new Error('PDF build returned null')
+  } catch (err) {
+    throw new Error(`Failed to build PDF for fixture: ${fileName}`, { cause: err })
   }
 
   console.log(`  Fixture ${fileName} verified successfully!`)

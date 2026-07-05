@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import type { FolderMetadata } from '../types/document'
 import { storageProvider } from './documentStorage'
+import { reindexFolder, reindexDocument } from '../../search/services/searchIndex'
 
 export interface FolderTreeNode extends FolderMetadata {
   children: FolderTreeNode[]
@@ -26,6 +27,9 @@ export const createFolder = async (name: string, parentId: string | null = null)
 
   folders.push(newFolder)
   await storageProvider.saveFolders(folders)
+  
+  void reindexFolder(newFolder.id)
+  
   return newFolder
 }
 
@@ -36,6 +40,9 @@ export const updateFolderMetadata = async (id: string, updates: Partial<FolderMe
 
   Object.assign(folder, updates, { updatedAt: Date.now() })
   await storageProvider.saveFolders(folders)
+  
+  void reindexFolder(folder.id)
+  
   return folder
 }
 
@@ -105,6 +112,11 @@ export const deleteFolder = async (id: string): Promise<void> => {
     }
   })
   if (libraryChanged) await storageProvider.saveLibrary(library)
+  
+  toDelete.forEach(f => void reindexFolder(f.id))
+  library.forEach(doc => {
+    if (doc.folderId && folderIds.includes(doc.folderId)) void reindexDocument(doc.id)
+  })
 }
 
 export const restoreFolder = async (id: string): Promise<void> => {
@@ -144,6 +156,11 @@ export const restoreFolder = async (id: string): Promise<void> => {
     }
   })
   if (libraryChanged) await storageProvider.saveLibrary(library)
+  
+  toRestore.forEach(f => void reindexFolder(f.id))
+  library.forEach(doc => {
+    if (doc.folderId && folderIds.includes(doc.folderId)) void reindexDocument(doc.id)
+  })
 }
 
 export const buildFolderTree = (folders: FolderMetadata[]): FolderTreeNode[] => {

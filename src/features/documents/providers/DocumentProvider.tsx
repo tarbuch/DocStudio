@@ -2,8 +2,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { useEditorContext } from '../../editor/providers/EditorProvider'
 import { storageProvider } from '../services/documentStorage'
-import { createDocument, migrateLegacyStorage, recordDocumentOpened } from '../services/documentManager'
+import { createDocument, migrateLegacyStorage, recordDocumentOpened, saveSnapshot } from '../services/documentManager'
 import { useAutosave } from '../../autosave/hooks/useAutosave'
+import { initializeSearchIndex } from '../../search/services/searchIndex'
 import type { DocumentMetadata, AppPreferences } from '../types/document'
 import { DOCUMENT_CONSTANTS } from '../constants/documents'
 
@@ -46,6 +47,8 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
     // 1. Flush pending autosave if not initial load
     if (activeDocumentId && !isInitial) {
       await flushAutosave()
+      // Create a snapshot when switching documents
+      await saveSnapshot(activeDocumentId, editor.getJSON())
     }
 
     // 2. Optimistically switch state
@@ -101,6 +104,9 @@ export const DocumentProvider: React.FC<{ children: ReactNode }> = ({ children }
       
       const prefs = await storageProvider.loadPreferences()
       setPreferences(prefs)
+
+      // Initialize search index asynchronously after storage is ready
+      void initializeSearchIndex()
 
       const library = await storageProvider.loadLibrary()
       let initialDocId = prefs.lastOpened

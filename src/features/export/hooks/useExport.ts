@@ -1,8 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useEditorContext } from '../../editor/providers/EditorProvider'
 import { useDocumentContext } from '../../documents/providers/DocumentProvider'
-import { executeExport } from '../services/exportEngine'
-import { SupportedExportFormats } from '../constants/export'
+
 import { BrowserAssetResolver } from '../utils/assetResolver'
 import type { ExportState, ExportResult } from '../types'
 
@@ -29,12 +28,32 @@ export const useExport = () => {
     try {
       setExportState('exporting')
       setError(null)
+      const { executeExport } = await import('../services/exportEngine')
       
       const content = editor.getJSON()
+      
+      // Temporary stub configuration until Phase 11.6
+      const configuration = {
+        version: 1 as const,
+        format: 'docx' as const,
+        pageSetup: {
+          size: 'A4' as const,
+          orientation: 'portrait' as const,
+          margins: { top: 72, right: 72, bottom: 72, left: 72 }
+        },
+        features: {
+          header: {},
+          footer: {},
+          watermark: { enabled: false, text: '', opacity: 0.2, rotation: -45, color: '#000000' },
+          pageNumbers: { enabled: true, position: 'bottom-right' as const }
+        }
+      }
+      
       const result = await executeExport(
-        SupportedExportFormats.DOCX,
-        content,
+        activeDocumentMeta?.id || 'temp',
         documentTitle,
+        configuration,
+        content,
         { assetResolver }
       )
       
@@ -52,7 +71,7 @@ export const useExport = () => {
       setExportState('error')
       setError(err instanceof Error ? err.message : 'Unknown export error')
     }
-  }, [editor, documentTitle, assetResolver, reset])
+  }, [editor, activeDocumentMeta, documentTitle, assetResolver, reset])
 
   return {
     exportState,

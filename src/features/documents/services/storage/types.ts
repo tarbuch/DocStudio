@@ -1,4 +1,4 @@
-import type { DocumentMetadata, DocumentContent, AppPreferences, FolderMetadata } from '../../types/document'
+import type { DocumentMetadata, DocumentContent, AppPreferences, FolderMetadata, DocumentSnapshot } from '../../types/document'
 
 export interface DocumentStorageProvider {
   loadLibrary(): Promise<DocumentMetadata[]>
@@ -10,4 +10,7 @@ export interface DocumentStorageProvider {
   deleteContent(id: string): Promise<void>
   loadPreferences(): Promise<AppPreferences>
   savePreferences(preferences: AppPreferences): Promise<void>
+  loadSnapshots(documentId: string): Promise<DocumentSnapshot[]>
+  saveSnapshot(snapshot: DocumentSnapshot): Promise<void>
+  deleteSnapshot(documentId: string, snapshotId: string): Promise<void>
 }

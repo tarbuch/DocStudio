@@ -159,3 +159,32 @@
   background: rgba(200, 200, 255, 0.4);
   pointer-events: none;
 }
+
+/* Print Styles */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 25.4mm; /* Default 1 inch */
+  }
+
+  /* Support landscape mode dynamically */
+  body.print-landscape @page {
+    size: A4 landscape;
+  }
+
+  /* Hide everything we don't want printed using Tailwind's print:hidden, 
+     but ensure body margins/paddings are stripped */
+  body {
+    background: transparent !important;
+    color: black !important;
+  }
+
+  /* Force the editor to expand and drop shadows/borders */
+  .ProseMirror {
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    min-height: auto !important;
+  }
+}
