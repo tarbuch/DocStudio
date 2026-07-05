@@ -1,0 +1,17 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "image",
+          "attrs": {
+            "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+            "alt": "Base64 encoded pixel"
+          }
+        }
+      ]
+    }
+  ]
+}

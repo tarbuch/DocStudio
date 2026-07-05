@@ -1,0 +1,25 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "This is a document with a JPEG image:"
+        },
+        {
+          "type": "image",
+          "attrs": {
+            "src": "https://example.com/test.jpg",
+            "alt": "Sample JPEG",
+            "title": "JPEG Title",
+            "width": 400,
+            "height": 300,
+            "alignment": "center"
+          }
+        }
+      ]
+    }
+  ]
+}

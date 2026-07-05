@@ -1,0 +1,17 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "image",
+          "attrs": {
+            "src": "https://this-url-definitely-does-not-exist.com/404.png",
+            "alt": "Missing image"
+          }
+        }
+      ]
+    }
+  ]
+}
