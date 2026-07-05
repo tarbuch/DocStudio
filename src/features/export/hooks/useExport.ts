@@ -22,7 +22,7 @@ export const useExport = () => {
     setLastResult(null)
   }, [])
 
-  const handleExportDocx = useCallback(async () => {
+  const handleExport = useCallback(async (format: 'docx' | 'pdf') => {
     if (!editor) return
 
     try {
@@ -35,7 +35,7 @@ export const useExport = () => {
       // Temporary stub configuration until Phase 11.6
       const configuration = {
         version: 1 as const,
-        format: 'docx' as const,
+        format,
         pageSetup: {
           size: 'A4' as const,
           orientation: 'portrait' as const,
@@ -75,7 +75,8 @@ export const useExport = () => {
 
   return {
     exportState,
-    exportToDocx: handleExportDocx,
+    exportToDocx: () => handleExport('docx'),
+    exportToPdf: () => handleExport('pdf'),
     isExporting: exportState === 'exporting',
     error,
     lastResult,

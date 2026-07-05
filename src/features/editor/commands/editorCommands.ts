@@ -19,6 +19,7 @@ export const createEditorCommands = (editor: Editor | null) => {
     redo: () => run((c) => c.redo()),
     canUndo: () => editor?.can().undo() ?? false,
     canRedo: () => editor?.can().redo() ?? false,
+    selectAll: () => run((c) => c.selectAll()),
 
     toggleBold: () => run((c) => c.toggleBold()),
     toggleItalic: () => run((c) => c.toggleItalic()),
@@ -58,6 +59,7 @@ export const createEditorCommands = (editor: Editor | null) => {
     deleteTable: () => editor?.chain().focus().deleteTable().run(),
 
     canModifyTable: () => editor?.isActive('table') ?? false,
+    insertHorizontalRule: () => run((c) => c.setHorizontalRule()),
 
     // Images
     insertImage: async (file: File) => {

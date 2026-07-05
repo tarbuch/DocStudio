@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { MenuBar } from './MenuBar'
+import { MenuBar } from './menu/MenuBar'
 import { DocumentHeader } from './DocumentHeader'
 import { FileText, Printer, Clock } from 'lucide-react'
 import { ExportDialog } from '../../export/components/ExportDialog'
@@ -17,7 +17,7 @@ export const AppHeader: React.FC = () => {
         </div>
         <div className="flex flex-col">
           <DocumentHeader />
-          <MenuBar />
+          <MenuBar onOpenHistory={() => setHistoryOpen(true)} />
         </div>
       </div>
       
