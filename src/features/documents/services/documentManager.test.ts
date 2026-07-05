@@ -35,7 +35,7 @@ describe('documentManager', () => {
 
   it('duplicates a document', async () => {
     const doc = await createDocument('Original')
-    await storageProvider.saveContent(doc.id, { type: 'doc', content: [] })
+    await storageProvider.saveContent(doc.id, { content: { type: 'doc', content: [] } })
     
     const duplicate = await duplicateDocument(doc.id)
     expect(duplicate).toBeDefined()

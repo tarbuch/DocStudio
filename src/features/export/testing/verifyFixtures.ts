@@ -76,7 +76,7 @@ async function verifyFixture(fileName: string) {
 
   // 3. Validate
   const configuration = {
-    version: EXPORT_CONFIGURATION_VERSION,
+    version: EXPORT_CONFIGURATION_VERSION as 1,
     format: 'docx' as const, // Default
     pageSetup: {
       size: 'A4' as const,

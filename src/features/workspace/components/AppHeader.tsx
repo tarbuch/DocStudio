@@ -3,7 +3,7 @@ import { MenuBar } from './MenuBar'
 import { DocumentHeader } from './DocumentHeader'
 import { FileText, Printer, Clock } from 'lucide-react'
 import { ExportDialog } from '../../export/components/ExportDialog'
-import { Button } from '../../../design-system/components/Button'
+import { Button } from '../../../components/ui/button'
 import { HistoryDrawer } from '../../history/components/HistoryDrawer'
 
 export const AppHeader: React.FC = () => {

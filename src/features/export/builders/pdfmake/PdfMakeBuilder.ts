@@ -45,7 +45,7 @@ export const PdfMakeBuilder: ExportBuilder<TDocumentDefinitions> = (context) => 
         const img = processImage(node as ImageNode, context)
         if (!img) return null
         return {
-          ...img,
+          ...(img as { image: string, width: number }),
           margin: [0, 5, 0, 5],
           alignment: (node.alignment as 'left' | 'center' | 'right') || 'left',
         }
@@ -126,12 +126,13 @@ const processImage = (node: ImageNode, context: ExportContext): Content | null =
   }
 }
 
-const processList = (node: AnyExportNode, context: ExportContext): Content | null => {
-  const items = (node.content || []).filter(li => li.type === 'listItem').map(li => {
-    const liContent = li.content || []
-    return liContent.map(child => {
+const processList = (node: AnyExportNode & { content?: AnyExportNode[] }, context: ExportContext): Content | null => {
+  const items = (node.content || []).filter((li: AnyExportNode) => li.type === 'listItem').map((li: AnyExportNode) => {
+    const liContent = ('content' in li ? li.content : []) || []
+    return liContent.map((child: AnyExportNode) => {
       if (child.type === 'paragraph') {
-        return (child.content || []).map(c => processTextOrImage(c as TextNode | ImageNode, context)).filter(Boolean)
+        const childContent = 'content' in child ? child.content : []
+        return (childContent || []).map((c: AnyExportNode) => processTextOrImage(c as TextNode | ImageNode, context)).filter(Boolean)
       } else if (child.type === 'bulletList' || child.type === 'orderedList') {
         return processList(child, context)
       }
@@ -140,9 +141,11 @@ const processList = (node: AnyExportNode, context: ExportContext): Content | nul
   })
 
   if (node.type === 'orderedList') {
-    return { ol: items, margin: [0, 5, 0, 5] }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return { ol: items as any, margin: [0, 5, 0, 5] }
   }
-  return { ul: items, margin: [0, 5, 0, 5] }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return { ul: items as any, margin: [0, 5, 0, 5] }
 }
 
 const processTable = (node: TableNode, context: ExportContext): Content | null => {
@@ -152,10 +155,11 @@ const processTable = (node: TableNode, context: ExportContext): Content | null =
     const tr = r as TableRowNode
     return (tr.content || []).map((c: AnyExportNode) => {
       const tc = c as TableCellNode | TableHeaderNode
-      const cellContent = (tc.content || []).map(child => {
+      const cellContent = (tc.content || []).map((child: AnyExportNode) => {
         if (child.type === 'paragraph') {
+          const childContent = 'content' in child ? child.content : []
           return {
-            text: (child.content || []).map(n => processTextOrImage(n as TextNode | ImageNode, context)).filter(Boolean)
+            text: (childContent || []).map((n: AnyExportNode) => processTextOrImage(n as TextNode | ImageNode, context)).filter(Boolean)
           }
         }
         return null

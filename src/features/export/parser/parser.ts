@@ -54,7 +54,7 @@ const parseNode = (
       metrics.paragraphs++
       return {
         type: 'paragraph',
-        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, inTable)).filter(Boolean) as (TextNode | ImageNode | UnsupportedNode)[]) : [],
+        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, inTable)).filter(n => n && n.type !== 'unsupported') as (TextNode | ImageNode)[]) : [],
       }
 
     case 'heading':
@@ -62,7 +62,7 @@ const parseNode = (
       return {
         type: 'heading',
         level: node.attrs?.level || 1,
-        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, inTable)).filter(Boolean) as (TextNode | UnsupportedNode)[]) : [],
+        content: node.content ? (node.content.map(n => parseNode(n, metrics, unsupportedNodes, inTable)).filter(n => n && n.type !== 'unsupported') as TextNode[]) : [],
       }
 
     case 'text':

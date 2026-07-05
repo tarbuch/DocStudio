@@ -26,7 +26,7 @@ export const createEditorCommands = (editor: Editor | null) => {
     toggleStrike: () => run((c) => c.toggleStrike()),
     toggleLink: () => {
       // Placeholder for Phase 3C requirement
-      console.log('Link UI coming soon')
+      alert('Link UI coming soon')
     },
     
     setParagraph: () => run((c) => c.setParagraph()),

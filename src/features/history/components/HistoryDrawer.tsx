@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { X, Clock, FileRestore, Trash2 } from 'lucide-react'
-import { format, isToday, isYesterday } from 'date-fns'
+import React, { useEffect, useState, useCallback } from 'react'
+import { X, Clock, RotateCcw, Trash2 } from 'lucide-react'
 import { Button } from '../../../components/ui/button'
 import { useDocumentContext } from '../../documents/providers/DocumentProvider'
 import { loadSnapshots, deleteSnapshot, saveSnapshot } from '../../documents/services/documentManager'
@@ -37,9 +36,9 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose })
     if (!editor || !activeDocumentId) return
     if (confirm('Are you sure you want to restore this version? Your current unsaved changes will be lost.')) {
       // Create a snapshot of current state before restoring
-      await saveSnapshot(activeDocumentId, editor.getJSON())
+      await saveSnapshot(activeDocumentId, { content: editor.getJSON() })
       
-      editor.commands.setContent(snapshot.content)
+      editor.commands.setContent(snapshot.content.content)
       fetchSnapshots()
       alert('Version restored. A snapshot of your previous state was saved.')
     }
@@ -55,7 +54,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose })
 
   const handleManualSnapshot = async () => {
     if (!activeDocumentId || !editor) return
-    await saveSnapshot(activeDocumentId, editor.getJSON())
+    await saveSnapshot(activeDocumentId, { content: editor.getJSON() })
     await fetchSnapshots()
   }
 
@@ -65,6 +64,20 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose })
     const today: DocumentSnapshot[] = []
     const yesterday: DocumentSnapshot[] = []
     const lastWeek: DocumentSnapshot[] = [] // older
+
+    const now = new Date()
+    
+    const isToday = (ts: number) => {
+      const d = new Date(ts)
+      return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+    }
+
+    const isYesterday = (ts: number) => {
+      const d = new Date(ts)
+      const y = new Date(now)
+      y.setDate(y.getDate() - 1)
+      return d.getDate() === y.getDate() && d.getMonth() === y.getMonth() && d.getFullYear() === y.getFullYear()
+    }
 
     snapshots.forEach(s => {
       if (isToday(s.timestamp)) today.push(s)
@@ -87,12 +100,12 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({ isOpen, onClose })
             <div key={s.id} className="p-3 bg-muted/40 border rounded-md group hover:bg-muted/80 transition-colors">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">
-                  {format(s.timestamp, 'MMM d, h:mm a')}
+                  {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(s.timestamp)}
                 </span>
               </div>
               <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button variant="outline" size="sm" className="h-7 text-xs flex-1" onClick={() => handleRestore(s)}>
-                  <FileRestore className="h-3 w-3 mr-1" /> Restore
+                  <RotateCcw className="h-3 w-3 mr-1" /> Restore
                 </Button>
                 <Button variant="outline" size="sm" className="h-7 px-2 text-destructive" onClick={() => handleDelete(s.id)}>
                   <Trash2 className="h-3 w-3" />
